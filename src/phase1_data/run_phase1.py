@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 from src.phase1_data.loader import load_5m_csv
 from src.phase1_data.resampler import resample_to_15m, resample_to_1h, resample_to_1d
 
-RAW_CSV = Path("Data/nifty_intraday_5min.csv")
+RAW_CSV = Path("data/raw/nifty_5m.csv")
 PROCESSED = Path("data/processed")
 REPORTS = Path("reports")
 FIGS = REPORTS / "figs" / "phase1"
@@ -66,8 +66,9 @@ def write_quality_report(
     ]
     for name, df in [("5m", df_5m), ("15m", df_15m), ("1h", df_1h), ("1d", df_1d)]:
         r = df.iloc[0]
+        bar_close_val = r.get('bar_close', 'N/A')
         lines.append(
-            f"| {name} | {r['timestamp']} | {r['bar_close']} | "
+            f"| {name} | {r['timestamp']} | {bar_close_val} | "
             f"{r['open']:.2f} | {r['high']:.2f} | {r['low']:.2f} | {r['close']:.2f} |"
         )
     (REPORTS / "phase1_data_quality.md").write_text(
@@ -79,6 +80,8 @@ def run() -> None:
     PROCESSED.mkdir(parents=True, exist_ok=True)
     FIGS.mkdir(parents=True, exist_ok=True)
 
+    if not RAW_CSV.exists():
+        sys.exit(f"[phase1] ERROR: raw CSV not found at {RAW_CSV.resolve()}")
     print("[phase1] Loading 5m data...")
     df_5m = load_5m_csv(RAW_CSV)
     df_5m.to_parquet(PROCESSED / "nifty_5m.parquet", index=False)
