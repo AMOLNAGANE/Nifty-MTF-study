@@ -2,7 +2,7 @@ from __future__ import annotations
 import pytest
 import pandas as pd
 import numpy as np
-from src.phase3_intra.targets import add_forward_returns, add_barrier_labels, add_regime_label
+from src.phase3_intra.targets import add_forward_returns, add_barrier_labels, add_regime_label, _BARRIER_CONFIG
 
 
 def make_df(close_prices: list[float]) -> pd.DataFrame:
@@ -28,7 +28,7 @@ def make_random_df(n: int = 100, seed: int = 42) -> pd.DataFrame:
 
 def test_forward_returns_shape():
     df = make_random_df(50)
-    result = add_forward_returns(df, "5m")
+    result = add_forward_returns(df)
     new_cols = [c for c in result.columns if c.startswith("ret_fwd_")]
     assert len(new_cols) == 5
     for col in ["ret_fwd_1", "ret_fwd_3", "ret_fwd_6", "ret_fwd_12", "ret_fwd_24"]:
@@ -37,7 +37,7 @@ def test_forward_returns_shape():
 
 def test_forward_returns_last_rows_nan():
     df = make_random_df(50)
-    result = add_forward_returns(df, "5m")
+    result = add_forward_returns(df)
     for n in [1, 3, 6, 12, 24]:
         col = f"ret_fwd_{n}"
         tail = result[col].iloc[-n:]
@@ -47,7 +47,7 @@ def test_forward_returns_last_rows_nan():
 def test_forward_returns_value():
     close = [100.0, 101.0, 102.0, 103.0, 104.0, 105.0, 106.0, 107.0, 108.0, 109.0]
     df = make_df(close)
-    result = add_forward_returns(df, "5m")
+    result = add_forward_returns(df)
     expected = (101.0 / 100.0) - 1.0
     assert abs(result["ret_fwd_1"].iloc[0] - expected) < 1e-9
 
@@ -66,7 +66,7 @@ def test_barrier_labels_valid_values():
 def test_barrier_labels_last_rows_nan():
     df = make_random_df(100)
     result = add_barrier_labels(df, "5m")
-    window = 24
+    _, window = _BARRIER_CONFIG["5m"]
     tail = result["barrier_hit"].iloc[-window:]
     assert tail.isna().all(), f"Last {window} rows of barrier_hit should be NaN"
 

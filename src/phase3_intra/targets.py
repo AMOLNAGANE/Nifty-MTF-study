@@ -12,7 +12,7 @@ _BARRIER_CONFIG: dict[str, tuple[float, int]] = {
 }
 
 
-def add_forward_returns(df: pd.DataFrame, tf: str) -> pd.DataFrame:
+def add_forward_returns(df: pd.DataFrame) -> pd.DataFrame:
     out = df.copy()
     close = out["close"]
     for n in _FWD_HORIZONS:
@@ -22,6 +22,8 @@ def add_forward_returns(df: pd.DataFrame, tf: str) -> pd.DataFrame:
 
 
 def add_barrier_labels(df: pd.DataFrame, tf: str) -> pd.DataFrame:
+    if tf not in _BARRIER_CONFIG:
+        raise ValueError(f"Unknown tf {tf!r}; supported: {list(_BARRIER_CONFIG)}")
     threshold, window = _BARRIER_CONFIG[tf]
     out = df.copy()
     close = out["close"].to_numpy(dtype=float)
@@ -50,7 +52,7 @@ def add_regime_label(df: pd.DataFrame, window: int = 20) -> pd.DataFrame:
     out = df.copy()
     close = out["close"].to_numpy(dtype=float)
     n = len(close)
-    regime = np.full(n, None, dtype=object)
+    regime = np.full(n, pd.NA, dtype=object)
     x = np.arange(window, dtype=float)
 
     for i in range(window - 1, n):
