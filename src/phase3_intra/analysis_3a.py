@@ -3,7 +3,10 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 import matplotlib
-matplotlib.use("Agg")  # non-interactive backend; must be set before importing pyplot
+try:
+    matplotlib.use("Agg")
+except Exception:
+    pass
 import matplotlib.pyplot as plt
 from pathlib import Path
 
@@ -61,8 +64,9 @@ def compute_decile_returns(
     tmp = df[horizon_cols].copy()
     tmp["_decile"] = decile_labels
 
-    result = tmp.groupby("_decile", observed=True)[horizon_cols].mean()
-    result["count"] = tmp.groupby("_decile", observed=True)[horizon_cols[0]].count()
+    grouped_means = tmp.groupby("_decile", observed=True)[horizon_cols].mean()
+    grouped_counts = tmp.groupby("_decile", observed=True)["_decile"].count().rename("count")
+    result = grouped_means.join(grouped_counts)
     return result
 
 
@@ -72,13 +76,13 @@ def compute_decile_returns(
 
 def _hac_stats(
     returns: pd.Series, hac_lags: int
-) -> tuple[float, float, float, int]:
+) -> tuple[float, int, float, float]:
     """Compute mean, count, HAC t-stat, and raw p-value for a return series."""
     clean = returns.dropna()
-    n = len(clean)
-    mean = float(clean.mean()) if n > 0 else float("nan")
-    if n < 20:
-        return mean, n, float("nan"), float("nan")
+    count = len(clean)
+    mean = float(clean.mean()) if count > 0 else float("nan")
+    if count < 20:
+        return mean, count, float("nan"), float("nan")
 
     y = clean.values.astype(float)
     X = np.ones((len(y), 1))
@@ -88,7 +92,7 @@ def _hac_stats(
     )
     t_stat = float(model.tvalues[0])
     p_val = float(model.pvalues[0])
-    return mean, n, t_stat, p_val
+    return mean, count, t_stat, p_val
 
 
 def compute_state_conditional_returns(
@@ -99,6 +103,9 @@ def compute_state_conditional_returns(
 ) -> pd.DataFrame:
     """Return multi-index DataFrame (state, horizon) × (mean, count, t_stat, p_val_raw)."""
     states = sorted(df[state_col].dropna().unique())
+    if not states:
+        empty = pd.DataFrame(columns=["state", "horizon", "mean", "count", "t_stat", "p_val_raw"])
+        return empty.set_index(["state", "horizon"])
     records = []
 
     for state in states:
@@ -172,6 +179,7 @@ def plot_decile_curves(
     ax.legend()
     ax.grid(True, alpha=0.3)
 
+    Path(out_dir).mkdir(parents=True, exist_ok=True)
     out_path = Path(out_dir) / f"decile_{tf}_{feature_name}.png"
     fig.savefig(out_path, dpi=100, bbox_inches="tight")
     plt.close(fig)
