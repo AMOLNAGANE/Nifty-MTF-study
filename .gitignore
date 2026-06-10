@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+
+# Raw data (large CSVs — not tracked)
+Data/
+data/raw/
+
+# Parquet outputs (reproducible from source)
+data/processed/
+data/features/
+
+# Jupyter
+.ipynb_checkpoints/
+notebooks/
+
+# OS
+.DS_Store
+Thumbs.db
