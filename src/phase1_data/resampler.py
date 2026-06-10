@@ -5,6 +5,8 @@ import pandas as pd
 def _session_bin_start(ts: pd.Timestamp, bin_minutes: int) -> pd.Timestamp:
     session_open = ts.replace(hour=9, minute=15, second=0, microsecond=0)
     elapsed_min = int((ts - session_open).total_seconds() / 60)
+    if elapsed_min < 0:
+        raise ValueError(f"Timestamp {ts} is before session open (09:15)")
     bin_idx = elapsed_min // bin_minutes
     return session_open + pd.Timedelta(minutes=bin_idx * bin_minutes)
 
@@ -25,6 +27,7 @@ def _agg_ohlc(grp: pd.DataFrame, bin_minutes: int) -> dict:
 def resample_to_15m(df_5m: pd.DataFrame) -> pd.DataFrame:
     df = df_5m.copy()
     df["_bin"] = df["timestamp"].apply(lambda ts: _session_bin_start(ts, 15))
+    # The 15:15 bar is intentionally kept (partial 15m bar with 1 5m constituent).
     records = [
         _agg_ohlc(grp, 15)
         for (_, _), grp in df.groupby(["session_date", "_bin"], sort=True)
@@ -43,7 +46,8 @@ def resample_to_1h(df_5m: pd.DataFrame) -> pd.DataFrame:
             (ts - ts.replace(hour=9, minute=15, second=0, microsecond=0)).total_seconds() / 60
         )
     )
-    df = df[df["_mins"] < 360].copy()
+    _STUB_CUTOFF_MINS = 360  # 09:15 + 360 min = 15:15; drop 15:15–15:30 stub bar
+    df = df[df["_mins"] < _STUB_CUTOFF_MINS].copy()
     df["_bin"] = df["timestamp"].apply(lambda ts: _session_bin_start(ts, 60))
     records = [
         _agg_ohlc(grp, 60)
@@ -62,7 +66,7 @@ def resample_to_1d(df_5m: pd.DataFrame) -> pd.DataFrame:
         first_ts = grp["timestamp"].iloc[0]
         records.append({
             "timestamp": first_ts,
-            "bar_close": first_ts.replace(hour=15, minute=30, second=0, microsecond=0),
+            "bar_close": pd.Timestamp(first_ts.date()).tz_localize("Asia/Kolkata").replace(hour=15, minute=30, second=0, microsecond=0),
             "open": grp["open"].iloc[0],
             "high": grp["high"].max(),
             "low": grp["low"].min(),
