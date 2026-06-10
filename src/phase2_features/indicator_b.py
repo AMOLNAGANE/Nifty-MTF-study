@@ -39,7 +39,7 @@ def compute_indicator_b(df: pd.DataFrame) -> pd.DataFrame:
     roc_invalid = (gap_prev7.abs() < epsilon).astype(int)
 
     roc_sma = roc.rolling(100, min_periods=100).mean()
-    roc_std = roc.rolling(100, min_periods=100).std()
+    roc_std = roc.rolling(100, min_periods=100).std().replace(0, np.nan)
     zroc = (roc - roc_sma) / roc_std
     roc_slope = roc.diff(1)
 
