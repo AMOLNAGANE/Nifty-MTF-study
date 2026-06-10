@@ -22,6 +22,16 @@ def load_5m_csv(path: str | Path) -> pd.DataFrame:
         print("[loader] Volume column all zero — dropping")
     df = df.drop(columns=["volume"])
 
+    # Filter to regular session hours: 09:15 – 15:29 (inclusive)
+    session_open_time = pd.Timestamp("09:15").time()
+    session_close_time = pd.Timestamp("15:29").time()
+    pre_market = (df["timestamp"].dt.time < session_open_time)
+    post_market = (df["timestamp"].dt.time > session_close_time)
+    n_out = (pre_market | post_market).sum()
+    if n_out:
+        print(f"[loader] Dropping {n_out} out-of-session bars (pre/post market)")
+        df = df[~pre_market & ~post_market].reset_index(drop=True)
+
     bad_high = (df["high"] < df[["open", "close"]].max(axis=1)).sum()
     bad_low = (df["low"] > df[["open", "close"]].min(axis=1)).sum()
     if bad_high or bad_low:
