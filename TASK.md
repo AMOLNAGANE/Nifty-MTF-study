@@ -323,19 +323,19 @@ This is where the real insight lives. Don't shortcut it.
 
 This is the final test. Touch the test set ONCE. No iteration.
 
-- [ ] **T6.1** Take the K surviving patterns from T5.18; do NOT modify them
-- [ ] **T6.2** Apply each pattern to the **validation split (year 4 = 2024)** — note: year 4 has already been used in Phase 5 ML hold-out, but the rule-based patterns from 5a were not tuned to year 4 directly. Acceptable; document this caveat.
-- [ ] **T6.3** ⚠ Apply each pattern to the **test split (year 5 = 2025+)** — never touched before
+- [x] **T6.1** Take the K surviving patterns from T5.18; do NOT modify them
+- [x] **T6.2** Apply each pattern to the **validation split (year 4 = 2024)** — note: year 4 has already been used in Phase 5 ML hold-out, but the rule-based patterns from 5a were not tuned to year 4 directly. Acceptable; document this caveat.
+- [x] **T6.3** ⚠ Apply each pattern to the **test split (year 5 = 2025+)** — never touched before
   - Acceptance: edge metrics computed once and recorded
-- [ ] **T6.4** Compare in-sample vs validation vs test edges; flag patterns whose edge collapsed
+- [x] **T6.4** Compare in-sample vs validation vs test edges; flag patterns whose edge collapsed
   - Acceptance: 3-column comparison table per pattern
-- [ ] **T6.5** Random feature baseline: for each surviving pattern, shuffle one constituent feature column, re-run; expect edge → 0
+- [x] **T6.5** Random feature baseline: for each surviving pattern, shuffle one constituent feature column, re-run; expect edge → 0
   - Acceptance: shuffled-feature edge documented per pattern
-- [ ] **T6.6** Year-by-year stability check: compute the pattern's edge per calendar year (2021–2025)
+- [x] **T6.6** Year-by-year stability check: compute the pattern's edge per calendar year (2021–2025)
   - Acceptance: 5-year edge sequence per surviving pattern; flag any pattern carried by a single year
-- [ ] **T6.7** Time-of-day baseline check: compare pattern firings to the time-of-day distribution they fire at; rule out "pattern = first hour drift"
+- [x] **T6.7** Time-of-day baseline check: compare pattern firings to the time-of-day distribution they fire at; rule out "pattern = first hour drift"
   - Acceptance: time-of-day baseline computed per pattern
-- [ ] **T6.8** Write `reports/phase6_validation.md` listing ONLY patterns that survive all three baselines
+- [x] **T6.8** Write `reports/phase6_validation.md` listing ONLY patterns that survive all three baselines
   - Acceptance: report exists; honest negative result reported if no survivors
 
 ---
