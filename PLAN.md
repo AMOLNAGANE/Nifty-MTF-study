@@ -117,6 +117,40 @@ Decisions you must make at each phase boundary. Pre-decide where possible; defer
 | D9 | Top-K rules to carry into validation (Phase 6) | Phase 5a ranking |
 | D10 | Whether to extend the study (e.g. add RSI, ADX) | Whether Phase 5 found compelling patterns or surfaced clear gaps |
 
+#### D9 — Resolved (2026-06-11)
+
+Phase 5a ranked all 256 confluence rules on the rule-discovery set (`bar_close.dt.year <= 2023`,
+n=58,080) by `composite = frequency * |mean_ret| * (hit_rate - 0.5)`; 15 survivors remained after
+Hamming-deduplication (min_hamming=2, see `reports/phase5/rules_survivors.csv`). The top 10 by
+composite are the K=10 patterns carried into Phase 6 for OOS re-measurement on 2024 + 2025:
+
+| rank | rule_id | active (bullish) flags | n | mean_ret | hit_rate | t_stat | p_val_bonf |
+|---|---|---|---|---|---|---|---|
+| 1 | 151 | A_5m, B_5m, A_15m, A_1h, B_1d | 324 | 0.001436 | 0.682 | 3.38 | 0.184 |
+| 2 | 121 | A_5m, B_15m, A_1h, B_1h, A_1d | 211 | 0.001894 | 0.692 | 3.69 | 0.057 |
+| 3 | 26 | B_5m, B_15m, A_1h | 76 | 0.003406 | 0.724 | 1.91 | 1.000 |
+| 4 | 0 | (none -- all 8 flags bearish/NaN) | 722 | 0.000534 | 0.637 | 1.75 | 1.000 |
+| 5 | 140 | A_15m, B_15m, B_1d | 133 | 0.002254 | 0.669 | 2.17 | 1.000 |
+| 6 | 31 | A_5m, B_5m, A_15m, B_15m, A_1h | 687 | 0.000584 | 0.617 | 1.18 | 1.000 |
+| 7 | 182 | B_5m, A_15m, A_1h, B_1h, B_1d | 160 | 0.001244 | 0.681 | 2.09 | 1.000 |
+| 8 | 211 | A_5m, B_5m, A_1h, A_1d, B_1d | 51 | 0.001944 | 0.843 | 1.85 | 1.000 |
+| 9 | 231 | A_5m, B_5m, A_15m, B_1h, A_1d, B_1d | 184 | 0.000930 | 0.696 | 2.18 | 1.000 |
+| 10 | 181 | A_5m, A_15m, A_1h, B_1h, B_1d | 176 | 0.001469 | 0.619 | 2.06 | 1.000 |
+
+Caveats carried forward from 5c (`reports/phase5_failure_analysis.md`):
+- Only rules 151 and 121 survive Bonferroni correction (`p_val_bonf` < 0.2); the remaining 8 are
+  exploratory and should be reported as such in Phase 6, not treated as pre-validated edges.
+- **Rule 0** ("no confluence flags active") is partly an artifact of the dataset's first ~year, where
+  the 1d-timeframe indicators are not yet computable (`B_roc_invalid_1d` / `B_zroc_extreme_1d` = 1 for
+  60% of "worked" rows vs. 0% of "failed" rows in the 5c worked/failed split). Its 2024/2025 hit rate
+  (where this warm-up period does not recur) may differ materially from the in-sample 0.637 -- report
+  it separately in Phase 6 rather than pooling with the other 9 rules.
+- For rules 151, 121, 26, 0 and 140, 5c also identified single-feature filters that materially
+  improve in-sample `hit_rate` / `mean_ret` (e.g. rule 151 + `A_signal_1d < 73.77` raises hit_rate from
+  0.682 to 0.837, n=324->135; full tables in `reports/phase5/failure_rule{id}_filters_before_after.csv`).
+  These filtered variants are optional secondary checks in Phase 6 -- the unfiltered top-10 above are
+  the primary D9 carry-set.
+
 ---
 
 ## 4. Risk Register

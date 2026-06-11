@@ -567,6 +567,7 @@ def run_phase4() -> None:
 
     print("[phase4] Loading master_5m.parquet ...")
     master = pd.read_parquet(MASTER)
+    master_orig_cols = list(master.columns)
     master = add_forward_returns(master)
     print(f"[phase4] Loaded {len(master):,} rows x {len(master.columns)} columns")
 
@@ -611,6 +612,14 @@ def run_phase4() -> None:
     report_path = REPORTS_DIR / "phase4_inter_tf.md"
     report_path.write_text("\n".join(lines), encoding="utf-8")
     print(f"[phase4] Report written: {report_path}")
+
+    # Persist confluence score columns (T4.9/T4.10/T4.13 -- "column added to master")
+    score_cols = ["score_bull", "score_bull_accel", "score_bear"]
+    to_save = master[master_orig_cols + score_cols]
+    to_save.to_parquet(MASTER, index=False)
+    print(f"[phase4] {MASTER}: added columns {score_cols} "
+          f"({to_save.shape[1]} cols total)")
+
     print("[phase4] Done.")
 
 

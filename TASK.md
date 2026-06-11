@@ -224,42 +224,42 @@ Recall the critical caveat (L4): when stratifying 5m forward returns by higher-T
 
 ### 4A. Sub-analysis 4a — Higher-TF as regime filter ⚠ — tests H11 (HTF regime + LTF trigger)
 
-- [ ] **T4.1** For each top setup from Phase 3 (5m-level), stratify by 1h `A_state` (4 levels)
+- [x] **T4.1** For each top setup from Phase 3 (5m-level), stratify by 1h `A_state` (4 levels)
   - Acceptance: per-setup table with 4 conditional rows; HAC SEs reported
-- [ ] **T4.2** Same for 1h `B_state`
-- [ ] **T4.3** Same for 1d `A_state` and 1d `B_state`
-- [ ] **T4.4** ⚠ Report effective sample size (unique 1h/1d bars) for each conditional, not 5m row count
+- [x] **T4.2** Same for 1h `B_state`
+- [x] **T4.3** Same for 1d `A_state` and 1d `B_state`
+- [x] **T4.4** ⚠ Report effective sample size (unique 1h/1d bars) for each conditional, not 5m row count
 
 ### 4B. Sub-analysis 4b — Cross-TF lead-lag (precedence statistics)
 
-- [ ] **T4.5** Identify all 15m `A_hist` zero-crosses
+- [x] **T4.5** Identify all 15m `A_hist` zero-crosses
   - Acceptance: event list with timestamp, direction
-- [ ] **T4.6** For each 15m cross, measure: did 1h `A_hist` cross same direction within next K bars (K=4 for 1h)?
+- [x] **T4.6** For each 15m cross, measure: did 1h `A_hist` cross same direction within next K bars (K=4 for 1h)?
   - Acceptance: transition probability matrix (15m flip direction → 1h follow-through prob)
-- [ ] **T4.7** Same exercise for 5m → 15m, 1h → 1d
-- [ ] **T4.8** Repeat for Indicator B zero-crosses
+- [x] **T4.7** Same exercise for 5m → 15m, 1h → 1d
+- [x] **T4.8** Repeat for Indicator B zero-crosses
 
 ### 4C. Sub-analysis 4c — Confluence scoring — tests H12 (monotonicity)
 
-- [ ] **T4.9** Compute `score_bull` ∈ [0, 8] per 5m bar = sum of (indicator bull) across 8 (indicator, TF) pairs
+- [x] **T4.9** Compute `score_bull` ∈ [0, 8] per 5m bar = sum of (indicator bull) across 8 (indicator, TF) pairs
   - Acceptance: column added to master; distribution histogram saved
-- [ ] **T4.10** Same for `score_bull_accel` (requires bull_accel state, not just sign)
-- [ ] **T4.11** Build score-bucketed forward return table at horizons {3, 6, 12} on 5m
+- [x] **T4.10** Same for `score_bull_accel` (requires bull_accel state, not just sign)
+- [x] **T4.11** Build score-bucketed forward return table at horizons {3, 6, 12} on 5m
   - Acceptance: 9-row table (scores 0..8) × 3 horizons; HAC SE
-- [ ] **T4.12** Plot monotonicity: score on x-axis, mean fwd return on y-axis
+- [x] **T4.12** Plot monotonicity: score on x-axis, mean fwd return on y-axis
   - Acceptance: PNG saved; visual inspection — is it monotonic, flat, or U-shaped? **H12 verdict recorded**
-- [ ] **T4.12b** Compression→expansion event study (15m/1h): `|B_gap_norm|` lowest decile followed by `|zroc| > 1.5`; does expansion direction predict subsequent 5m–15m move, and is |move| > baseline? — **tests H13**
+- [x] **T4.12b** Compression→expansion event study (15m/1h): `|B_gap_norm|` lowest decile followed by `|zroc| > 1.5`; does expansion direction predict subsequent 5m–15m move, and is |move| > baseline? — **tests H13**
   - Acceptance: event list, signed and absolute forward-return comparison vs. baseline
 
 ### 4D. Sub-analysis 4d — Asymmetry
 
-- [ ] **T4.13** Build `score_bear` symmetric to `score_bull` (count of bearish flags)
-- [ ] **T4.14** Compare magnitudes of bull-edge vs bear-edge at equivalent scores
+- [x] **T4.13** Build `score_bear` symmetric to `score_bull` (count of bearish flags)
+- [x] **T4.14** Compare magnitudes of bull-edge vs bear-edge at equivalent scores
   - Acceptance: side-by-side table with comment on asymmetry
 
 ### 4E. Phase 4 report
 
-- [ ] **T4.15** Write `reports/phase4_inter_tf.md`
+- [x] **T4.15** Write `reports/phase4_inter_tf.md`
   - Acceptance: sections 4a–4d, plots embedded, caveat L4 explicitly stated
   - Key question to answer: **does higher-TF alignment strengthen 5m edges?**
 
@@ -269,52 +269,52 @@ Recall the critical caveat (L4): when stratifying 5m forward returns by higher-T
 
 ### 5A. Sub-analysis 5a — Boolean rule enumeration
 
-- [ ] **T5.1** Enumerate 2^8 = 256 boolean combinations of (indicator, TF) bull flags
+- [x] **T5.1** Enumerate 2^8 = 256 boolean combinations of (indicator, TF) bull flags
   - Acceptance: list/DataFrame of 256 rules
-- [ ] **T5.2** For each rule, compute: frequency, mean fwd_ret_12_5m, hit rate, HAC-adjusted t-stat
+- [x] **T5.2** For each rule, compute: frequency, mean fwd_ret_12_5m, hit rate, HAC-adjusted t-stat
   - Acceptance: 256-row DataFrame saved as `reports/phase5/rules_all.csv`
-- [ ] **T5.3** Rank by composite score: `frequency × |mean_return| × (hit_rate - 0.5)`
+- [x] **T5.3** Rank by composite score: `frequency × |mean_return| × (hit_rate - 0.5)`
   - Acceptance: top-20 extracted; bottom-20 also extracted (largest negative edges)
-- [ ] **T5.4** Manually inspect top-20 rules; remove duplicates / trivially-related rules
+- [x] **T5.4** Manually inspect top-20 rules; remove duplicates / trivially-related rules
   - Acceptance: ≤20 distinct rules in survivor list
 
 ### 5B. Sub-analysis 5b — LightGBM feature importance
 
-- [ ] **T5.5** Prepare features (~80 cols across all 4 TFs) and target (sign of `ret_fwd_12_5m`)
+- [x] **T5.5** Prepare features (~80 cols across all 4 TFs) and target (sign of `ret_fwd_12_5m`)
   - Acceptance: train DataFrame ready, target balanced check (~50/50 sign distribution baseline)
-- [ ] **T5.6** ⚠ Walk-forward train: in-sample years 1–3, predict on year 4; NEVER random shuffle
+- [x] **T5.6** ⚠ Walk-forward train: in-sample years 1–3, predict on year 4; NEVER random shuffle
   - Acceptance: walk-forward routine implemented; sample split timestamps logged
-- [ ] **T5.7** Train shallow LightGBM (max_depth=4, n_estimators=200, learning_rate=0.05)
+- [x] **T5.7** Train shallow LightGBM (max_depth=4, n_estimators=200, learning_rate=0.05)
   - Acceptance: model trained; AUC reported on year-4 hold-out (in-sample-test only here, NOT final test)
-- [ ] **T5.8** Compute permutation importance on year-4 data
+- [x] **T5.8** Compute permutation importance on year-4 data
   - Acceptance: top-15 features ranked
-- [ ] **T5.9** Compute SHAP values for top-5 features; inspect interaction effects
+- [x] **T5.9** Compute SHAP values for top-5 features; inspect interaction effects
   - Acceptance: SHAP summary plot saved; one notable interaction documented
-- [ ] **T5.10** Inspect tree's top splits (depth 1–2 of root trees)
+- [x] **T5.10** Inspect tree's top splits (depth 1–2 of root trees)
   - Acceptance: top-3 splits documented — these are the model's "first questions"
 
 ### 5C. Sub-analysis 5c — Failure / inversion analysis ⚠
 
 This is where the real insight lives. Don't shortcut it.
 
-- [ ] **T5.11** For each top-5 rule from 5a, separate fired bars into "worked" vs "failed" based on fwd_ret_12 sign matching expected direction
+- [x] **T5.11** For each top-5 rule from 5a, separate fired bars into "worked" vs "failed" based on fwd_ret_12 sign matching expected direction
   - Acceptance: per-rule (n_worked, n_failed, baseline_hit_rate)
-- [ ] **T5.12** For each rule, compute mean-difference of every other feature between worked vs. failed cases
+- [x] **T5.12** For each rule, compute mean-difference of every other feature between worked vs. failed cases
   - Acceptance: ranked list of differentiating features (by effect size, with HAC SE)
-- [ ] **T5.13** Propose filter candidates: features that separate worked from failed by >0.5 std
+- [x] **T5.13** Propose filter candidates: features that separate worked from failed by >0.5 std
   - Acceptance: per-rule filter candidate list
-- [ ] **T5.14** Re-measure rule edge **with each candidate filter applied**; check if hit rate / mean return improves materially
+- [x] **T5.14** Re-measure rule edge **with each candidate filter applied**; check if hit rate / mean return improves materially
   - Acceptance: before/after comparison table for each rule
 
 ### 5D. Phase 5 reports
 
-- [ ] **T5.15** Write `reports/phase5_rules_top20.md`
+- [x] **T5.15** Write `reports/phase5_rules_top20.md`
   - Acceptance: top-20 rules, ranked, with frequency / edge / hit rate
-- [ ] **T5.16** Write `reports/phase5_ml_importance.md`
+- [x] **T5.16** Write `reports/phase5_ml_importance.md`
   - Acceptance: feature importance, SHAP plots, top splits
-- [ ] **T5.17** Write `reports/phase5_failure_analysis.md`
+- [x] **T5.17** Write `reports/phase5_failure_analysis.md`
   - Acceptance: per-rule failure analysis + filter candidates
-- [ ] **T5.18** Resolve D9 (top-K survivors carried to Phase 6)
+- [x] **T5.18** Resolve D9 (top-K survivors carried to Phase 6)
   - Acceptance: explicit list of K ≤ 10 patterns chosen for OOS test
 
 ---
