@@ -342,20 +342,20 @@ This is the final test. Touch the test set ONCE. No iteration.
 
 ## Phase 7 — Synthesis (Day 17)
 
-- [ ] **T7.1** Write `FINDINGS.md` answering the 5 synthesis questions from DESIGN_DOC §9.2:
+- [x] **T7.1** Write `FINDINGS.md` answering the 5 synthesis questions from DESIGN_DOC §9.2:
   - Q1: Within each TF, which indicator state most reliably precedes directional moves?
   - Q2: Does B lead A or A lead B at each TF?
   - Q3: When indicators agree on a single TF, is the edge real?
   - Q4: When indicators agree across TFs, is the edge stronger? By how much?
   - Q5: What's the best rule discovered? What's its failure mode? What filter improves it?
   - Acceptance: each question answered in 2-5 paragraphs with quantitative backing
-- [ ] **T7.1b** Hypothesis verdict table: one row per H1–H14 with verdict (confirmed / rejected / inconclusive), effect size, and the report section containing the evidence
+- [x] **T7.1b** Hypothesis verdict table: one row per H1–H14 with verdict (confirmed / rejected / inconclusive), effect size, and the report section containing the evidence
   - Acceptance: all 14 hypotheses have explicit verdicts; rejections are written up with the same care as confirmations
-- [ ] **T7.2** Add explicit "negative findings" section — what did NOT work, and why this is itself useful
+- [x] **T7.2** Add explicit "negative findings" section — what did NOT work, and why this is itself useful
   - Acceptance: ≥3 negative findings documented
-- [ ] **T7.3** Update PLAN §3 decision log with all resolved decisions
+- [x] **T7.3** Update PLAN §3 decision log with all resolved decisions
   - Acceptance: D1–D10 all marked resolved
-- [ ] **T7.4** Add "Future work" section listing follow-ups for which the data now exists
+- [x] **T7.4** Add "Future work" section listing follow-ups for which the data now exists
   - Acceptance: 3-5 concrete follow-up project ideas
 
 ---

@@ -96,6 +96,37 @@ Decisions you must make at each phase boundary. Pre-decide where possible; defer
 | D3 | Use `gap` raw or `gap_norm = gap/close`? | Compute **both**, prefer `gap_norm` for cross-time comparisons | Index level moved 1.8× over 5 years; raw gap is non-stationary |
 | D4 | Compute 1d return as close-to-close or open-to-close? | **Open-to-close** for intraday analysis; close-to-close as secondary | Overnight gaps are dominated by global news, unrelated to your indicators |
 
+#### D1-D4 — Resolved (2026-06-11)
+
+- **D1 (1h stub bar): Resolved as planned.** `src/phase1_data/resampler.py:49` defines
+  `_STUB_CUTOFF_MINS = 360` (09:15 + 360min = 15:15) and drops the 15:15-15:30 stub bar from the
+  1h resample, matching the "Drop" default exactly.
+- **D2 (expiry-day bars): Partially resolved — deviation.** Only the "include in main analysis"
+  half of the default was implemented; expiry-day bars are present in all Phase 3-6 analyses with
+  no special handling. The "also produce a separate `expiry_only` analysis" half was **never
+  implemented** (no `expiry` column, flag, or report exists anywhere in `src/` or `reports/`).
+  Given Phase 5/6 already found that the dominant sources of edge instability are year-to-year
+  variance (R5/R10) and time-of-day effects (R3, T6.7), and that 8/10 carried rules failed OOS for
+  those reasons, an expiry-day-specific analysis was deprioritized. This is documented as a
+  deviation rather than silently dropped; FINDINGS.md §4 (Future Work) covers the regime-related
+  follow-ups that would subsume it (an expiry-day flag could be added alongside the VIX
+  stratifier in T8.1).
+- **D3 (gap vs gap_norm): Resolved as planned — both computed.** `src/phase2_features/
+  indicator_b.py` computes raw `B_gap` and `out["B_gap_norm"] = gap / close` (line 47).
+  `B_gap_norm` (and its z-scored derivative `B_zroc`) is the column used throughout Phase 3-6's
+  cross-time/cross-TF comparisons, per the "prefer gap_norm" guidance.
+- **D4 (1d return convention): Resolved — deviation, documented honestly.** The default
+  recommended open-to-close for 1d with close-to-close as a secondary check. In the implementation,
+  `src/phase3_intra/targets.py` computes `ret_fwd_N = (close.shift(-N) / close) - 1` uniformly for
+  **all four timeframes including 1d** — i.e. **close-to-close was used as the sole 1d convention**,
+  not as a secondary. This means 1d forward returns include overnight/weekend gap risk that the
+  original design wanted to exclude from the "indicator signal" measurement. No open-to-close
+  variant was computed. Impact assessment: despite this, the 1d `A_state` results (H1, Q1) were
+  directionally consistent and reached `p_val_adj < 0.05` at multiple horizons, so the gap-inclusive
+  convention does not appear to have been a confound for the headline 1d findings — but a future
+  re-run with `ret_fwd_N_intraday = (close.shift(-N)/open.shift(-N+1))-1`-style open-to-close
+  returns would be needed to confirm this rigorously (see FINDINGS.md §4).
+
 ### 3.2 After Phase 1 — data-informed decisions
 
 | # | Decision | Inputs needed |
@@ -103,12 +134,52 @@ Decisions you must make at each phase boundary. Pre-decide where possible; defer
 | D5 | Holiday-truncated day threshold (drop if <X bars) | Histogram of bars-per-day across 5 years |
 | D6 | The epsilon for `B_roc_invalid` flag (L3 above) | 1st-percentile of `abs(gap_prev)` per TF |
 
+#### D5-D6 — Resolved (2026-06-11)
+
+- **D5 (holiday-truncated day threshold): Resolved as "no filter applied" — deviation from L2's
+  stated default.** `bars_per_day = df_5m.groupby("session_date").size()` is computed in
+  `src/phase1_data/run_phase1.py:106` and reported descriptively in
+  `reports/phase1_data_quality.md` (mean=74.5, min=6, max=75 bars/day), but grepping
+  `src/phase1_data/resampler.py` and `run_phase1.py` for any drop/filter logic on this quantity
+  found none — **no day was dropped, and no `is_irregular_session` flag was added.** All ~1,244
+  trading days, including the handful of Diwali Muhurat-trading short sessions (~6 bars instead
+  of ~75), are retained in every downstream feature and analysis. Post-hoc rationale: these
+  truncated days represent roughly 5 days out of 1,244 (~0.4%) — an immaterial share of the
+  thousands-to-tens-of-thousands-row samples used in Phase 3-6 — and a short session still
+  produces valid OHLC bars with no NaN/look-ahead issue, only a different intraday volatility
+  shape for that one day. The deviation is judged low-impact and is documented here rather than
+  retroactively re-run.
+- **D6 (`B_roc_invalid` epsilon): Resolved as planned.** `src/phase2_features/indicator_b.py:38`
+  computes `epsilon = float(abs_prev.quantile(0.01)) if len(abs_prev) > 0 else 0.0` — the 1st
+  percentile of `abs(gap_prev)`, computed independently per TF (since `indicator_b.py` runs once
+  per TF's DataFrame), exactly matching the planned approach.
+
 ### 3.3 After Phase 3 — data-informed decisions
 
 | # | Decision | Inputs needed |
 |---|---|---|
 | D7 | Forward-return horizons to carry into Phase 4 | Which N values showed largest/cleanest signal in Phase 3a |
 | D8 | Whether to add VIX/INDIAVIX as a regime stratifier | Whether Phase 3 results show variance regime dependence |
+
+#### D7-D8 — Resolved (2026-06-11)
+
+- **D7 (forward-return horizon to carry into Phase 4): Resolved — `ret_fwd_12`.** Phase 3a
+  computed all five horizons (`ret_fwd_1, 3, 6, 12, 24`, `src/phase3_intra/run_phase3.py:40`) per
+  TF. `ret_fwd_12` was selected as the de facto standard horizon for Phase 4-6 (used in
+  `phase4_inter_tf.md`'s stratified tables, `phase5_mining`'s `evaluate_rules(...,
+  ret_col="ret_fwd_12")`, and all of `phase6_validation.md`'s comparison/year-by-year/ToD tables)
+  because, per FINDINGS.md Q1, it produced the most `p_val_adj < 0.05` `A_state` cells across the
+  most TFs (15m `bull_accel`/`bull_decel`, 1h `bull_accel`, 1d `bull_accel`/`bear_accel`), and at
+  5m/15m it corresponds to roughly a 1-3 hour look-ahead — long enough to filter single-bar noise
+  while remaining within "intraday momentum" rather than crossing into multi-day drift.
+- **D8 (VIX/INDIAVIX regime stratifier): Resolved — not added.** Phase 3 did not surface variance-
+  regime dependence strong enough to justify adding an INDIAVIX-based stratifier before Phase 4/5;
+  the COVID-era variance risk (R5) was instead handled via the year-by-year breakdowns built
+  directly into Phase 6 (T6.6). Those year-by-year tables *do* show some carried rules with
+  outsized single-year contributions (e.g. rule 140's `mean_ret_2022 = 0.005975` vs.
+  `0.0001-0.0004` in 2023-2025), which a volatility-regime stratifier could help explain. T8.1
+  (VIX/INDIAVIX stratifier) remains an optional/stretch task and is carried forward as
+  FINDINGS.md §4 Future Work item 3.
 
 ### 3.4 After Phase 5 — data-informed decisions
 
@@ -150,6 +221,31 @@ Caveats carried forward from 5c (`reports/phase5_failure_analysis.md`):
   0.682 to 0.837, n=324->135; full tables in `reports/phase5/failure_rule{id}_filters_before_after.csv`).
   These filtered variants are optional secondary checks in Phase 6 -- the unfiltered top-10 above are
   the primary D9 carry-set.
+
+#### D10 — Resolved (2026-06-11)
+
+**Decision: do not extend the study with new indicators (e.g. RSI, ADX) at this time.**
+
+Phase 5/6 results show the bottleneck in this study is **OOS robustness, not signal availability**:
+the existing 2-indicator (A=MACD, B=gap-ROC) x 4-TF x 256-rule confluence space already produced
+more candidates (15 Hamming-deduped survivors, 10 carried into Phase 6) than could be validated --
+only 2/10 (rules 140 and 31) survived all three Phase 6 checks (`reports/phase6_validation.md`
+T6.8). Adding a third or fourth indicator family would multiply the rule space combinatorially
+(256 -> several thousand for 3 indicators x 4 TFs) while Phase 6 already demonstrated that 80% of
+rules from the *smaller* space failed to generalize past the discovery window.
+
+Separately, FINDINGS.md negative finding #3 (H8) found that indicator B itself adds essentially no
+incremental predictive power over indicator A (`ΔR² <= 0.0018` at every TF, B's own `B_state`
+never reaching `p_val_adj < 0.05` at any TF/horizon) -- i.e. even the *current* 2-indicator
+framework is past the point of diminishing returns for NIFTY 50 at these timeframes.
+
+Recommended next steps instead (detailed in FINDINGS.md §4 Future Work) are: (1) build a
+cost-aware backtest for rules 140/31 specifically, (2) re-validate rule 140's
+`B_zroc_1d > 0.1698` filter OOS, (3) add the D8/T8.1 VIX regime stratifier to the *existing*
+indicators to explain the year-to-year instability already observed, and (4) if a genuinely new
+signal family is wanted, prioritize **volume-based confirmation on NIFTY futures data** (L1) over
+additional price-derived oscillators, since oscillators derived from the same close series tend to
+be highly collinear with A/B (as H8 demonstrated for B vs. A).
 
 ---
 
