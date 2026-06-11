@@ -1,0 +1,15 @@
+flip_idx,confirmed,bars_to_confirm
+19,True,1.0
+75,True,18.0
+156,False,
+222,True,1.0
+336,False,
+438,True,3.0
+462,False,
+485,True,1.0
+609,True,4.0
+745,True,18.0
+819,True,13.0
+834,True,16.0
+936,True,2.0
+953,True,3.0
