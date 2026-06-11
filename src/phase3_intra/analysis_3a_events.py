@@ -74,7 +74,7 @@ def event_study_h2_peak_timing(
 
     r3 = mean_fwd.get("ret_fwd_3", 0.0)
     r12 = mean_fwd.get("ret_fwd_12", 0.0)
-    if r3 != 0.0 and r12 != 0.0:
+    if r12 != 0.0:
         short_vs_long = r3 / r12
     else:
         short_vs_long = float("nan")

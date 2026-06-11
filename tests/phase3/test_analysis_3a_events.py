@@ -77,6 +77,24 @@ def test_h2_peak_timing_empty_when_no_transitions():
     assert summary["n_events"] == 0
 
 
+def test_h2_short_vs_long_zero_r3():
+    """short_vs_long should be 0.0 (not nan) when mean 3-bar return is zero."""
+    # Build a df where a bull_accel->bull_decel transition occurs at row 1,
+    # and ret_fwd_3 at row 1 is exactly 0.0, ret_fwd_12 is 0.01.
+    n = 50
+    np.random.seed(42)
+    df = pd.DataFrame({
+        "A_state": ["bull_accel", "bull_decel"] + ["bear_accel"] * (n - 2),
+        "ret_fwd_3": [np.nan, 0.0] + [0.005] * (n - 2),
+        "ret_fwd_12": [np.nan, 0.01] + [0.005] * (n - 2),
+    })
+    _, summary = event_study_h2_peak_timing(df, ["ret_fwd_3", "ret_fwd_12"])
+    assert summary["n_events"] == 1
+    assert summary["short_vs_long"] == pytest.approx(0.0), (
+        f"Expected 0.0, got {summary['short_vs_long']}"
+    )
+
+
 # ---------------------------------------------------------------------------
 # H3 — Aligned vs tired zero-cross
 # ---------------------------------------------------------------------------
